@@ -29,13 +29,13 @@ class TagViewSet(ReadOnlyModelViewSet):
     pagination_class = None
 
 
-class IngredientViewSet(ReadOnlyModelViewSet):
+class IngredientViewSet(ModelViewSet):
     """Вьюсет ингредиентов."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
     permission_classes = [IsAuthorOrReadOnly]
-    filter_backends = IngredientFilter
+    filter_backends = (IngredientFilter,)
     search_fields = ('^name',)
 
 
@@ -44,7 +44,7 @@ class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filter_class = RecipeFilter
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
@@ -70,7 +70,7 @@ class RecipeViewSet(ModelViewSet):
     def post_list(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
             return Response(
-                {'errors': 'Рецепт уже добавлен в избранное.'},
+                {'errors': f'Рецепт уже добавлен в {model.__name__}'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         recipe = get_object_or_404(Recipe, pk=pk)
@@ -85,23 +85,23 @@ class RecipeViewSet(ModelViewSet):
             obj.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(
-            {'errors': 'Рецепт уже удален из избранного.'},
+            {'errors': f'Рецепт не добавлен в {model.__name__}'},
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    @action(methods=['POST', 'DELETE'], detail=True,
+    @action(methods=['post', 'delete'], detail=True,
             permission_classes=(IsAuthenticated,))
     def favorite(self, request, pk=None):
         if request.method == 'POST':
             return self.post_list(Favorite, request.user, pk)
         return self.delete_list(Favorite, request.user, pk)
 
-    @action(methods=['POST', 'DELETE'], detail=True,
+    @action(methods=['post', 'delete'], detail=True,
             permission_classes=(IsAuthenticated,))
     def shopping_cart(self, request, pk=None):
         if request.method == 'POST':
-            return self.add_in_list(ShoppingCart, request.user, pk)
-        return self.delete_in_list(ShoppingCart, request.user, pk)
+            return self.post_list(ShoppingCart, request.user, pk)
+        return self.delete_list(ShoppingCart, request.user, pk)
 
     @action(
         detail=False,

@@ -134,9 +134,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 'Необходим хотя бы 1 ингредиент.')
         unique_ingredients = []
         for ingredient in ingredients:
-            ingr_id = ingredient['id']
-            if ingr_id not in unique_ingredients:
-                unique_ingredients.append(ingr_id)
+            ingredient_id = ingredient['id']
+            if ingredient_id not in unique_ingredients:
+                unique_ingredients.append(ingredient_id)
             else:
                 raise ValidationError(
                     'Такой ингредиент уже есть.')
