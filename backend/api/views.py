@@ -113,20 +113,20 @@ class RecipeViewSet(ModelViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         ingredients = IngredientRecipe.objects.filter(
-            recipe__cart__user=request.user
+            recipe__cart__user=user
         ).values(
             'ingredient__name',
             'ingredient__measurement_unit'
-        ).annotate(amount=Sum('amount'))
+        ).annotate(amount=Sum('amount')).order_by()
 
         shopping_list = (
             f'Список покупок для: {user.get_full_name()}\n\n'
             f'Дата: {date.today()}\n\n'
         )
         shopping_list += '\n'.join([
-            f'- {ingredient["ingredient__name"]} '
-            f'({ingredient["ingredient__measurement_unit"]})'
+            f'- {ingredient["ingredient__name"]}'
             f' - {ingredient["amount"]}'
+            f'({ingredient["ingredient__measurement_unit"]})'
             for ingredient in ingredients
         ])
 
