@@ -126,8 +126,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 recipe=recipe,
                 ingredient_id=ingredient.get('id'),
                 amount=ingredient.get('amount')
-                ) for ingredient in ingredients
-        ])
+                ) for ingredient in ingredients])
 
     def validate_ingredient(self, data):
         ingredients = data['ingredients']

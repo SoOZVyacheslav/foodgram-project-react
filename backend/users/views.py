@@ -63,6 +63,6 @@ class UserViewSet(UserViewSet):
             return Response('Вы отписались', status=status.HTTP_204_NO_CONTENT)
         if user.id == author.id:
             return Response(
-                 {'errors': 'Вы не подписаны, либо отписались.'},
-                 status=status.HTTP_400_BAD_REQUEST)
+                {'errors': 'Вы не подписаны, либо отписались.'},
+                status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
