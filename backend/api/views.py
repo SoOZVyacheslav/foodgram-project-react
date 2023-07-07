@@ -1,4 +1,4 @@
-from datetime import date
+from django.utils import timezone
 
 from django.db.models import Sum
 from django.http import HttpResponse
@@ -117,15 +117,15 @@ class RecipeViewSet(ModelViewSet):
         ).values(
             'ingredient__name',
             'ingredient__measurement_unit'
-        ).annotate(amount=Sum('amount')).order_by()
+        ).annotate(result=Sum('amount')).order_by()
 
         shopping_list = (
             f'Список покупок для: {user.get_full_name()}\n\n'
-            f'Дата: {date.today()}\n\n'
+            f'Дата: {timezone.now()}\n\n'
         )
         shopping_list += '\n'.join([
             f'- {ingredient["ingredient__name"]}'
-            f' - {ingredient["amount"]}'
+            f' - {ingredient["result"]}'
             f'({ingredient["ingredient__measurement_unit"]})'
             for ingredient in ingredients
         ])

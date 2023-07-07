@@ -8,6 +8,14 @@ from recipes.models import Recipe
 User = get_user_model()
 
 
+class SubscribeRecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор модели рецепта в подписках."""
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time',)
+
+
 class UserCustomCreateSerializer(UserCreateSerializer):
     """Сериализатор регистрации User."""
     username = serializers.RegexField(
@@ -22,7 +30,7 @@ class UserCustomCreateSerializer(UserCreateSerializer):
 class UserCustomSerializer(UserSerializer):
     """Сериализатор модели User."""
     is_subscribed = serializers.SerializerMethodField()
-    recipes = serializers.SerializerMethodField()
+    recipes = SubscribeRecipeSerializer(many=True)
 
     class Meta:
         model = User
@@ -37,18 +45,6 @@ class UserCustomSerializer(UserSerializer):
             if user.is_authenticated
             else False
         )
-
-    def get_recipes(self, obj):
-        queryset = Recipe.objects.filter(author=obj.id)
-        return SubscribeRecipeSerializer(queryset, many=True).data
-
-
-class SubscribeRecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор модели рецепта в подписках."""
-
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name', 'image', 'cooking_time',)
 
 
 class SubscribeSerializer(serializers.ModelSerializer):

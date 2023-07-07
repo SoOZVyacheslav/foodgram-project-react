@@ -121,14 +121,16 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return serializer.data
 
     def add_ingredients(self, recipe, ingredients):
-        for ingredient in ingredients:
-            IngredientRecipe.objects.create(
+        IngredientRecipe.objects.bulk_create([
+            IngredientRecipe(
                 recipe=recipe,
                 ingredient_id=ingredient.get('id'),
-                amount=ingredient.get('amount'), )
+                amount=ingredient.get('amount')
+                ) for ingredient in ingredients
+        ])
 
-    def validate_ingredients(self, data):
-        ingredients = self.initial_data.get('ingredients')
+    def validate_ingredient(self, data):
+        ingredients = data['ingredients']
         if not ingredients:
             raise ValidationError(
                 'Необходим хотя бы 1 ингредиент.')
@@ -170,7 +172,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             self.add_ingredients(recipe, ingredients)
         tags = self.initial_data.pop("tags")
         recipe.tags.set(tags)
-        recipe.save()
         return super().update(recipe, validated_data)
 
 

@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import exceptions, status
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -27,10 +27,8 @@ class UserViewSet(UserViewSet):
         permission_classes=[IsAuthenticated]
     )
     def subscriptions(self, request):
-        user = self.request.user
-        user_subscriptions = user.follower.all()
-        authors = [item.author.id for item in user_subscriptions]
-        queryset = User.objects.filter(id__in=authors)
+        user = request.user
+        queryset = User.objects.filter(following__user=user)
         paginated_queryset = self.paginate_queryset(queryset)
         serializer = self.get_serializer(paginated_queryset, many=True)
         return self.get_paginated_response(serializer.data)
@@ -41,37 +39,30 @@ class UserViewSet(UserViewSet):
         serializer_class=SubscribeSerializer
     )
     def subscribe(self, request, id):
-        user = get_object_or_404(User, username=request.user.username)
+        user = request.user
         author = get_object_or_404(User, id=id)
 
         if self.request.method == 'POST':
             if user.id == author.id:
-                raise exceptions.ValidationError(
-                    'Нельзя подписаться на себя.')
-            if Subscription.objects.filter(
-                user=user,
-                author=author
-            ).exists():
-                raise exceptions.ValidationError(
-                    'Вы уже подписаны.')
-
+                return Response(
+                    {'errors': 'Нельзя подписаться на себя.'},
+                    status=status.HTTP_400_BAD_REQUEST)
+            if Subscription.objects.filter(user=user, author=author).exists():
+                return Response(
+                    {'errors': 'Вы уже подписаны.'},
+                    status=status.HTTP_400_BAD_REQUEST)
             Subscription.objects.create(user=user, author=author)
             serializer = self.get_serializer(author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        if self.request.method == 'DELETE':
-            if not Subscription.objects.filter(
-                user=user,
-                author=author
-            ).exists():
-                raise exceptions.ValidationError(
-                    'Вы не подписано, либо отписались.')
-
+        if Subscription.objects.filter(user=user, author=author).exists():
             subscription = get_object_or_404(
                 Subscription,
                 user=user,
-                author=author
-            )
+                author=author)
             subscription.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response('Вы отписались', status=status.HTTP_204_NO_CONTENT)
+        if user.id == author.id:
+            return Response(
+                 {'errors': 'Вы не подписаны, либо отписались.'},
+                 status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
