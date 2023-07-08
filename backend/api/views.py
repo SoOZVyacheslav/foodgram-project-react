@@ -1,8 +1,7 @@
-from django.utils import timezone
-
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status
 from rest_framework.decorators import action
@@ -89,14 +88,14 @@ class RecipeViewSet(ModelViewSet):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    @action(methods=['post', 'delete'], detail=True,
+    @action(methods=['POST', 'DELETE'], detail=True,
             permission_classes=(IsAuthenticated,))
     def favorite(self, request, pk=None):
         if request.method == 'POST':
             return self.post_list(Favorite, request.user, pk)
         return self.delete_list(Favorite, request.user, pk)
 
-    @action(methods=['post', 'delete'], detail=True,
+    @action(methods=['POST', 'DELETE'], detail=True,
             permission_classes=(IsAuthenticated,))
     def shopping_cart(self, request, pk=None):
         if request.method == 'POST':

@@ -143,8 +143,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                     'Такой ингредиент уже есть.')
         return data
 
-    def validate_cooking_time(self, data):
-        cooking_time = self.initial_data.get('cooking_time')
+    def validate_time(self, data):
+        cooking_time = data['cooking_time']
         if int(cooking_time) <= 1:
             raise ValidationError(
                 'Время приготовления должно быть больше 1.')
