@@ -103,7 +103,9 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для добавление рецепта."""
-    tags = TagSerializer(many=True, read_only=True)
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Tag.objects.all())
     ingredients = IngredientEditSerializer(many=True)
     author = UserCustomSerializer(
         read_only=True,
@@ -152,7 +154,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
-        tags = self.initial_data.get('tags')
+        tags = self.data['tags']
         cooking_time = validated_data.pop('cooking_time')
         author = self.context['request'].user
         new_recipe = Recipe.objects.create(
@@ -165,11 +167,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return new_recipe
 
     def update(self, recipe, validated_data):
-        if validated_data.get("ingredients"):
-            ingredients = validated_data.pop("ingredients")
+        if validated_data['ingredients']:
+            ingredients = validated_data.pop('ingredients')
             recipe.ingredient_recipes.all().delete()
             self.add_ingredients(recipe, ingredients)
-        tags = self.initial_data.pop("tags")
+        tags = validated_data.pop('tags')
         recipe.tags.set(tags)
         return super().update(recipe, validated_data)
 
