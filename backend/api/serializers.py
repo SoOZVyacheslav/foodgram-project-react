@@ -64,16 +64,21 @@ class IngredientEditSerializer(serializers.ModelSerializer):
     amount = serializers.IntegerField()
 
     class Meta:
-        model = Ingredient
+        model = IngredientRecipe
         fields = ('id', 'amount')
+
+    def validate_amount(self, value):
+        if value < 1:
+            raise serializers.ValidationError(
+                'Количество ингредиента должно быть больше 1!'
+            )
+        return value
 
 
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор модели рецепта."""
     tags = TagSerializer(many=True)
-    author = UserCustomSerializer(
-        read_only=True,
-        default=serializers.CurrentUserDefault())
+    author = UserCustomSerializer()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
     ingredients = IngredientRecipeSerializer(
