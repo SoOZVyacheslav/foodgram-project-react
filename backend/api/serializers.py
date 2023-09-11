@@ -1,12 +1,12 @@
 from drf_base64.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from users.models import User
-from users.serializers import UserCustomSerializer
 
 from recipes.models import (
     Favorite, Ingredient, IngredientRecipe, Recipe, ShoppingCart, Tag,
 )
+from users.models import User
+from users.serializers import UserCustomSerializer
 
 
 class IngredientSerializer(serializers.ModelSerializer):
