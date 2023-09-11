@@ -30,18 +30,21 @@ class UserCustomCreateSerializer(UserCreateSerializer):
 class UserCustomSerializer(UserSerializer):
     """Сериализатор модели User."""
     is_subscribed = serializers.SerializerMethodField()
+    recipes = SubscribeRecipeSerializer(many=True)
 
     class Meta:
         model = User
         fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'is_subscribed',)
+                  'last_name', 'is_subscribed', 'recipes',)
         lookup_field = 'id'
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        if not user.is_authenticated:
-            return False
-        return user.follower.filter(author=obj).exists()
+        return (
+            user.follower.filter(author=obj).exists()
+            if user.is_authenticated
+            else False
+        )
 
 
 class SubscribeSerializer(serializers.ModelSerializer):
