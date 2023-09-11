@@ -1,8 +1,8 @@
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
-
 from users.models import Subscription
+
 from recipes.models import Recipe
 
 User = get_user_model()
@@ -30,21 +30,18 @@ class UserCustomCreateSerializer(UserCreateSerializer):
 class UserCustomSerializer(UserSerializer):
     """Сериализатор модели User."""
     is_subscribed = serializers.SerializerMethodField()
-    recipes = SubscribeRecipeSerializer(many=True)
 
     class Meta:
         model = User
         fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'is_subscribed', 'recipes',)
+                  'last_name', 'is_subscribed',)
         lookup_field = 'id'
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        return (
-            user.follower.filter(author=obj).exists()
-            if user.is_authenticated
-            else False
-        )
+        if not user.is_authenticated:
+            return False
+        return user.follower.filter(author=obj).exists()
 
 
 class SubscribeSerializer(serializers.ModelSerializer):
@@ -59,7 +56,7 @@ class SubscribeSerializer(serializers.ModelSerializer):
                   'is_subscribed', 'recipes', 'recipes_count',)
 
     def get_is_subscribed(self, obj):
-        user = self.context.get('request').user
+        user = self.context['request'].user
         if not user:
             return False
         return Subscription.objects.filter(user=user, author=obj).exists()
